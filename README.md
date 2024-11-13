@@ -7,8 +7,9 @@
 docker build -t docker-kernel-rockchip .
 # extract build artifacts
 docker create --name artifacts docker-kernel-rockchip
-docker cp artifacts:/build/kernel.img ./images
-docker cp artifacts:/build/resource.img ./images
+mkdir ./images
+docker cp artifacts:/build/kernel-rockchip/kernel.img ./images/kernel.img
+docker cp artifacts:/build/kernel-rockchip/resource.img ./images/resource.img
 # cleanup
 docker rm artifacts
 ```
