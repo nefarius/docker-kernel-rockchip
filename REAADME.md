@@ -1,5 +1,18 @@
 # FriendlyARM Rockchip Linux Kernel Build Environment
 
+## Usage
+
+```bash
+# build the kernel
+docker build -t docker-kernel-rockchip .
+# extract build artifacts
+docker create --name artifacts docker-kernel-rockchip
+docker cp artifacts:/build/kernel.img ./images
+docker cp artifacts:/build/resource.img ./images
+# cleanup
+docker rm artifacts
+```
+
 ## Sources
 
 - [NanoPC-T6 Wiki - How to Compile](https://wiki.friendlyelec.com/wiki/index.php/NanoPC-T6#How_to_Compile)
