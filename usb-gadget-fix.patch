@@ -1,0 +1,104 @@
+diff --git a/drivers/usb/gadget/legacy/raw_gadget.c b/drivers/usb/gadget/legacy/raw_gadget.c
+index e549022642e569..b9ecc55a2ce24c 100644
+--- a/drivers/usb/gadget/legacy/raw_gadget.c
++++ b/drivers/usb/gadget/legacy/raw_gadget.c
+@@ -25,6 +25,7 @@
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/ch11.h>
+ #include <linux/usb/gadget.h>
++#include <linux/usb/composite.h>
+ 
+ #include <uapi/linux/usb/raw_gadget.h>
+ 
+@@ -363,6 +364,16 @@ static int gadget_setup(struct usb_gadget *gadget,
+ out_unlock:
+ 	spin_unlock_irqrestore(&dev->lock, flags);
+ out:
++	if (ret == 0 && ctrl->wLength == 0) {
++		/*
++		 * Return USB_GADGET_DELAYED_STATUS as a workaround to stop
++		 * some UDC drivers (e.g. dwc3) from automatically proceeding
++		 * with the status stage for 0-length transfers.
++		 * Should be removed once all UDC drivers are fixed to always
++		 * delay the status stage until a response is queued to EP0.
++		 */
++		return USB_GADGET_DELAYED_STATUS;
++	}
+ 	return ret;
+ }
+
+diff --git a/drivers/usb/gadget/legacy/inode.c b/drivers/usb/gadget/legacy/inode.c
+index ce9e31f3d26bcc..6b929defc2d253 100644
+--- a/drivers/usb/gadget/legacy/inode.c
++++ b/drivers/usb/gadget/legacy/inode.c
+@@ -31,6 +31,12 @@
+ 
+ #include <linux/usb/gadgetfs.h>
+ #include <linux/usb/gadget.h>
++#include <linux/usb/composite.h> /* for USB_GADGET_DELAYED_STATUS */
++
++/* Undef helpers from linux/usb/composite.h as gadgetfs redefines them */
++#undef DBG
++#undef ERROR
++#undef INFO
+ 
+ 
+ /*
+@@ -1511,7 +1517,16 @@ delegate:
+ 			event->u.setup = *ctrl;
+ 			ep0_readable (dev);
+ 			spin_unlock (&dev->lock);
+-			return 0;
++			/*
++			 * Return USB_GADGET_DELAYED_STATUS as a workaround to
++			 * stop some UDC drivers (e.g. dwc3) from automatically
++			 * proceeding with the status stage for 0-length
++			 * transfers.
++			 * Should be removed once all UDC drivers are fixed to
++			 * always delay the status stage until a response is
++			 * queued to EP0.
++			 */
++			return w_length == 0 ? USB_GADGET_DELAYED_STATUS : 0;
+ 		}
+ 	}
+
+
+diff --git a/include/linux/usb/composite.h b/include/linux/usb/composite.h
+index 6014340ba980de..af3cd2aae4bcb3 100644
+--- a/include/linux/usb/composite.h
++++ b/include/linux/usb/composite.h
+@@ -35,6 +35,14 @@
+  * are ready. The control transfer will then be kept from completing till
+  * all the function drivers that requested for USB_GADGET_DELAYED_STAUS
+  * invoke usb_composite_setup_continue().
++ *
++ * NOTE: USB_GADGET_DELAYED_STATUS must not be used in UDC drivers: they
++ * must delay completing the status stage for 0-length control transfers
++ * regardless of the whether USB_GADGET_DELAYED_STATUS is returned from
++ * the gadget driver's setup() callback.
++ * Currently, a number of UDC drivers rely on USB_GADGET_DELAYED_STATUS,
++ * which is a bug. These drivers must be fixed and USB_GADGET_DELAYED_STATUS
++ * must be contained within the composite framework.
+  */
+ #define USB_GADGET_DELAYED_STATUS       0x7fff	/* Impossibly large value */
+ 
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 75bda0783395a0..6532beb587b197 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -711,6 +711,15 @@ static inline int usb_gadget_check_config(struct usb_gadget *gadget)
+  * get_interface.  Setting a configuration (or interface) is where
+  * endpoints should be activated or (config 0) shut down.
+  *
++ * The gadget driver's setup() callback does not have to queue a response to
++ * ep0 within the setup() call, the driver can do it after setup() returns.
++ * The UDC driver must wait until such a response is queued before proceeding
++ * with the data/status stages of the control transfer.
++ *
++ * NOTE: Currently, a number of UDC drivers rely on USB_GADGET_DELAYED_STATUS
++ * being returned from the setup() callback, which is a bug. See the comment
++ * next to USB_GADGET_DELAYED_STATUS for details.
++ *
+  * (Note that only the default control endpoint is supported.  Neither
+  * hosts nor devices generally support control traffic except to ep0.)
+  *
