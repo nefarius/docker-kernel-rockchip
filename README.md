@@ -2,17 +2,43 @@
 
 ## Usage
 
+### Build modified kernel
+
+Run this on your Docker build machine.
+
 ```bash
 # build the kernel
 docker build -t docker-kernel-rockchip .
 # extract build artifacts
 docker create --name artifacts docker-kernel-rockchip
-mkdir ./images
+mkdir -p ./images
 docker cp artifacts:/build/kernel-rockchip/kernel.img ./images/kernel.img
 docker cp artifacts:/build/kernel-rockchip/resource.img ./images/resource.img
 docker cp artifacts:/build/kernel-rockchip/out-modules ./images/modules
 # cleanup
 docker rm artifacts
+```
+
+### Transfer kernel and modules to NanoPC
+
+Run this on your Docker build machine.
+
+```bash
+sudo rsync -avzh --rsync-path="sudo rsync" images/kernel.img pi@192.168.2.126:/root/
+sudo rsync -avzh --rsync-path="sudo rsync" images/resource.img pi@192.168.2.126:/root/
+sudo rsync -avzh --rsync-path="sudo rsync" images/modules/lib/modules/ pi@192.168.2.126:/lib/modules/
+```
+
+### Update files on the NanoPC
+
+Run this on the NanoPC.
+
+```bash
+sudo chown root:root -R /lib/modules/6.1.57/
+sudo -i
+cd /root
+dd if=resource.img of=/dev/mmcblk2p4 bs=1M
+dd if=kernel.img of=/dev/mmcblk2p5 bs=1M
 ```
 
 ## Sources
