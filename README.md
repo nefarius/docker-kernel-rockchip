@@ -1,5 +1,9 @@
 # FriendlyARM Rockchip Linux Kernel Build Environment
 
+## About
+
+Builds the latest [FriendlyARM Linux Kernel](https://github.com/friendlyarm/kernel-rockchip) with [USB Raw Gadget](https://docs.kernel.org/usb/raw-gadget.html) enabled and patches for [unusual handling of setup requests with wLength == 0](https://lore.kernel.org/linux-usb/CA+fCnZcQSYy63ichdivAH5-fYvN2UMzTtZ--h=F6nK0jfVou3Q@mail.gmail.com/T/#u) applied.
+
 ## Usage
 
 Clone this repository on a machine with Docker installed and follow  the instructions.
@@ -42,6 +46,8 @@ cd /root
 dd if=resource.img of=/dev/mmcblk2p4 bs=1M
 dd if=kernel.img of=/dev/mmcblk2p5 bs=1M
 ```
+
+Now reboot to load the new kernel.
 
 ## Sources
 
