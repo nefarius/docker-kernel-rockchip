@@ -2,6 +2,8 @@
 
 ## Usage
 
+Clone this repository on a machine with Docker installed and follow  the instructions.
+
 ### Build modified kernel
 
 Run this on your Docker build machine.
