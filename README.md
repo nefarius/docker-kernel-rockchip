@@ -10,6 +10,7 @@ docker create --name artifacts docker-kernel-rockchip
 mkdir ./images
 docker cp artifacts:/build/kernel-rockchip/kernel.img ./images/kernel.img
 docker cp artifacts:/build/kernel-rockchip/resource.img ./images/resource.img
+docker cp artifacts:/build/kernel-rockchip/out-modules ./images/modules
 # cleanup
 docker rm artifacts
 ```
