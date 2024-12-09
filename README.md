@@ -27,7 +27,7 @@ docker rm artifacts
 
 ### Transfer kernel and modules to NanoPC
 
-Run this on your Docker build machine.
+Run this on your Docker build machine. Make sure to replace it with your IP/hostname and that `sudo` and `rsync` are installed on the box:
 
 ```bash
 sudo rsync -avzh --rsync-path="sudo rsync" images/kernel.img pi@192.168.2.126:/root/
