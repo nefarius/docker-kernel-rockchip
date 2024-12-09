@@ -41,10 +41,8 @@ Run this on the NanoPC.
 
 ```bash
 sudo chown root:root -R /lib/modules/6.1.57/
-sudo -i
-cd /root
-dd if=resource.img of=/dev/mmcblk2p4 bs=1M
-dd if=kernel.img of=/dev/mmcblk2p5 bs=1M
+sudo dd if=/root/resource.img of=/dev/mmcblk2p4 bs=1M
+sudo dd if=/root/kernel.img of=/dev/mmcblk2p5 bs=1M
 ```
 
 Now reboot to load the new kernel.
