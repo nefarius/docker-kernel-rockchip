@@ -39,6 +39,8 @@ sudo rsync -avzh --rsync-path="sudo rsync" images/modules/lib/modules/ pi@192.16
 
 Run this on the NanoPC.
 
+**CAUTION:** verify that the partition device names and kernel version in the path matches your build!
+
 ```bash
 sudo chown root:root -R /lib/modules/6.1.57/
 sudo dd if=/root/resource.img of=/dev/mmcblk2p4 bs=1M
