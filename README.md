@@ -1,4 +1,4 @@
-# FriendlyARM Rockchip Linux Kernel Build Environment
+# FriendlyARM Rockchip Linux Kernel Build
 
 ## About
 
